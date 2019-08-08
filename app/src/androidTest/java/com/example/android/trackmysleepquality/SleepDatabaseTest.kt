@@ -16,15 +16,17 @@
 
 package com.example.android.trackmysleepquality
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.android.trackmysleepquality.database.SleepDatabase
 import com.example.android.trackmysleepquality.database.SleepDatabaseDao
 import com.example.android.trackmysleepquality.database.SleepNight
-import org.junit.Assert.assertEquals
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -38,6 +40,8 @@ import java.io.IOException
 @RunWith(AndroidJUnit4::class)
 class SleepDatabaseTest {
 
+    @get:Rule
+    val rule = InstantTaskExecutorRule()
     private lateinit var sleepDao: SleepDatabaseDao
     private lateinit var db: SleepDatabase
 
@@ -66,6 +70,36 @@ class SleepDatabaseTest {
         sleepDao.insert(night)
         val tonight = sleepDao.getTonight()
         assertEquals(tonight?.sleepQuality, -1)
+    }
+    @Test
+    @Throws(Exception::class)
+    fun insertUpdateAndGet(){
+        val night = SleepNight()
+        night.nightId=5
+        night.sleepQuality=3
+        sleepDao.insert(night)
+        night.sleepQuality=2
+        sleepDao.update(night)
+        val sameNight=sleepDao.get(night.nightId)
+        assertEquals(night.sleepQuality,sameNight?.sleepQuality)
+    }
+
+    @Test@Throws(java.lang.Exception::class)
+    fun insertAndClear(){
+        val night = SleepNight()
+        sleepDao.insert(night)
+        sleepDao.clear()
+        assertNull(sleepDao.getTonight())
+    }
+
+    //TODO getAll Unit test in development, LiveData is still returning null despite using InvokeTaskExecutorRule
+    @Test@Throws(java.lang.Exception::class)
+    fun insertAndGetAll(){
+        val night = SleepNight()
+        sleepDao.insert(night)
+        sleepDao.insert(night)
+        var allNights = sleepDao.getAllNights()
+        allNights.value
     }
 }
 
